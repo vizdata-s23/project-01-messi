@@ -16,7 +16,21 @@ library(tidyverse)
 
 A brief description of your dataset including its provenance, dimensions, etc. as well as the reason why you chose this dataset.
 
+**Why we picked the dataset**
+
+We picked this dataset because we thought that the subject would be fresh on people\'s minds (the 2022 World Cup concluded less than two months ago), and therefore relevant to current discussion. We also felt that there has been a narrative in recent years about how the teams previously considered as \"underdogs\", have been catching up to the traditional powerhouse teams. We wanted to see if this narrative was in fact true, or if this was just wishful thinking. We were also curious to see if the penalties being implemented in the World Cup impacted the number of goals scored per game. We liked how the data included a dataset that looked at the World Cup at more of a macro level (one observation per world cup), and then also at a micro level (every individual match).
+
 Make sure to load the data and use inline code for some of this information.
+
+```{r}
+library(tidyverse)
+wcmatches <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/wcmatches.csv')
+worldcups <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/worldcups.csv')
+```
+
+The wcmatches dataset has 900 observations and 15 variables. Each observation represents a different match played at a world cup.
+
+The worldcups dataset has 21 observations and 13 variables. Each observation represents a world cup.
 
 # Questions
 
@@ -25,3 +39,22 @@ The two questions you want to answer.
 # Analysis plan
 
 A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+
+```{r}
+worldcups <- worldcups |>
+  mutate(goalspergame = goals_scored/games,
+         attendancepergame = attendance/games,
+         gamesperteam = games/teams)
+
+ggplot(
+  worldcups,
+  aes(y = goalspergame, x = gamesperteam)
+) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "Average games per team", y = "Goals per game",
+    title = "How average number of games played by each team impacts \ngoals scored per game"
+  )
+
+```
