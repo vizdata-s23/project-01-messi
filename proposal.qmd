@@ -5,7 +5,7 @@ format: html
 editor: visual
 ---
 
-```{r}
+```{r, echo = FALSE}
 #| label: load-pkgs
 #| message: false
 #| warning: false
@@ -29,7 +29,7 @@ We picked this dataset because we thought that the subject would be fresh on peo
 
 ### Load Data
 
-```{r}
+```{r, echo = FALSE}
 #| label: load-data
 #| message: false
 
@@ -57,9 +57,9 @@ How has the representation of countries outside of Europe and South America chan
 
 First, we merged the `wcmatches` dataset with the `worldcups` dataset by left joining `worldcups` onto `wcmatches` by the year and bring over the information for each world cup to each world cup match.
 
-**Note**: We might possibly merge external data for 2022 World Cup if we decide to include data from the recent World Cup into our analysis.
+**Note**: We might possibly merge external data for 2022 World Cup if we decide to include data from the recent World Cup into our analysis. Additionally to enhance our analysis on penalty kicks, we may include external data showing more details regarding such.
 
-```{r}
+```{r, echo = FALSE}
 #| label: merge-data
 
 world_cup_total <- wcmatches |>
@@ -70,7 +70,7 @@ world_cup_total <- wcmatches |>
 
 We created three variables initially to help us explore our first question. `goalspergame` is the number of goals scored per game. `attendancepergame` is the attendance of people per game. `gamesperteam` is the number of games played per team. In addition to these variables, we will also create other variables that will explore different factors that affect the goals scored per game, including variables that represent certain changes like VAR that were implemented in the world cup.
 
-```{r}
+```{r, echo = FALSE}
 #| label: create-variables
 
 world_cup_total <- world_cup_total |>
@@ -83,9 +83,21 @@ To answer our second question, we will create a variable that calculates the pro
 
 ### Question #1 Plan:
 
-There have been new additions to world cup rules over time. This includes the introduction of penalties to break ties, VAR to contest calls on the field, the number of teams in each world cup, and more. There are also factors that affect the players individually, such as the number of additional leagues/tournaments they play in. 
+There have been new additions to World Cup rules, and soccer in general, over time. This includes the introduction of penalties to break ties, VAR to contest calls on the field, the number of teams in each world cup, and more. There are also factors that affect the players individually, such as the number of additional leagues/tournaments they play in. 
 
-We are **planning** to have a graph over time showing the number of goals scored during each world cup and/or during each game. We will add layers on top of this graph to show when certain changes were implemented in the world cup. Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. The variables we intend to use are year, home score, away score, and possibly extra variables we create.
+The first plot will examine goal scoring trends across world cups in order to examine the effect of new rules on the outcomes of games. We are **planning** to create a scatterplot showing the number of goals scored during each world cup and/or during each game. We will add annotations on top of this graph to show when certain changes were implemented in the World Cup, hopefully to highlight/explain changes in patterns.
+
+Our second plot will be a deeper analysis in to the effect of penalty kicks. A very controversial and game-deciding call on the field, the World Cup has seen both the introduction and change in frequency (partially due to VAR) of PKs in its history. Our **plan** for the second plot will be a bar graph showing how the frequency of penalty kicks have changed over time. A possible extension on this idea would be including the success ratios of penalty kicks taken and/or whether the penalty was taken during the game or to break a tie at the end.
+
+Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. Along with extra variables we may create in the process, the variables we intend to use are:
+
+| variable       | class     |
+|----------------|-----------|
+| year           | double    |
+| home_score     | double    |
+| away_score     | double    |
+| goals_scored   | double    |
+| win_conditions | character |
 
 ### Question #2 Plan:
 
