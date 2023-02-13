@@ -14,7 +14,7 @@ jobs:
           checklist::check_allowed_files(
           c("_extra/*", "images/*", "_freeze/*",
             "data/*.csv", "data/*.csv", "data/*.xls", "data/*.xlsx", "data/README.md",
-            "README.md", 
+            "README.md", "project-01.Rproj",
             "index.qmd", "presentation.qmd", "proposal.qmd", "about.qmd", "_quarto.yml"
             )
           )
