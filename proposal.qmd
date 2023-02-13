@@ -13,7 +13,7 @@ editor: visual
 library(tidyverse)
 ```
 
-# Dataset
+## Dataset
 
 The data covers every single World Cup match played in its history from Uruguay in 1930 to Russia in 2018. Our data is split into two datasets: `wcmatches` and `worldcups` .
 
@@ -23,11 +23,11 @@ In addition, the `worldcups` dataset includes a summary of each World Cup held, 
 
 We might include possible [data](https://www.kaggle.com/datasets/die9origephit/fifa-world-cup-2022-complete-dataset) from the Qatar World Cup with this link.
 
-### Why We Picked this Dataset
+#### Why We Picked this Dataset
 
 We picked this dataset because we thought that the subject would be fresh on people's minds (the 2022 World Cup concluded less than two months ago), and therefore relevant to current discussion. We also felt that there has been a narrative in recent years about how the teams previously considered as "underdogs", have been catching up to the traditional powerhouse teams. We wanted to see if this narrative was in fact true, or if this was just wishful thinking. We were also curious to see if the penalties being implemented in the World Cup impacted the number of goals scored per game. We liked how the data included a dataset that looked at the World Cup at more of a macro level (one observation per world cup), and then also at a micro level (every individual match).
 
-### Load Data
+#### Load Data
 
 ```{r, echo = FALSE}
 #| label: load-data
@@ -41,17 +41,17 @@ The `wcmatches` dataset has `r nrow(wcmatches)` observations and `r ncol(wcmatch
 
 The `worldcups` dataset has `r nrow(worldcups)` observations and `r ncol(worldcups)` variables. Each observation represents a world cup.
 
-# Questions
+## Questions
 
-#### Question 1:
+##### Question 1:
 
 How have the goals per game and per tournament changed over time? Has the introduction of any new rules affected scores?
 
-#### Question 2:
+##### Question 2:
 
 How has the representation of countries outside of Europe and South America changed over time? Has this changed by round?
 
-# Analysis plan
+## Analysis plan
 
 **Merge Data**
 
@@ -83,7 +83,7 @@ world_cup_total <- world_cup_total |>
 
 To answer our second question, we will create a variable that calculates the proportion of teams from Europe/South American and other continents over each year of the world cup to use in our visualization and observe how this proportion changes over time.
 
-### Question #1 Plan:
+#### Question #1 Plan:
 
 There have been new additions to World Cup rules, and soccer in general, over time. This includes the introduction of penalties to break ties, VAR to contest calls on the field, the number of teams in each world cup, and more. There are also factors that affect the players individually, such as the number of additional leagues/tournaments they play in. 
 
@@ -101,7 +101,7 @@ Our overall goal is to analyze how games have changed over time in terms of goal
 | goals_scored   | double    |
 | win_conditions | character |
 
-### Question #2 Plan:
+#### Question #2 Plan:
 
 Back during the conception of the world cup, despite the 'world' name, it was dominated by European and South American teams. The world cup had very little representation from Asia, Africa and Oceania. We hope to make two graphs which can explore this question on representation. 
 
