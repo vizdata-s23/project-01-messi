@@ -95,7 +95,6 @@ world_cup_total$win_conditions <-
       world_cup_total$win_conditions
     )
   )
-
 ```
 
 To answer our second question, we will create a variable that calculates the proportion of teams from Europe/South American and other continents over each year of the world cup to use in our visualization and observe how this proportion changes over time.
