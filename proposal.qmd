@@ -89,6 +89,7 @@ world_cup_total <- world_cup_total |>
 
 ```{r fix-conditions, echo=FALSE}
 # Create a new column "win_conditions" and replace missing values based on the value in the "outcome" column
+<<<<<<< HEAD
 #world_cup_total$win_conditions <-
 #  ifelse(
 #    is.na(world_cup_total$win_conditions) &
@@ -110,6 +111,20 @@ world_cup_total <- world_cup_total %>%
                                     TRUE ~ win_conditions)) %>%
   mutate(winning_team = if_else(outcome == "D", "Tie", winning_team)) %>%
   mutate(losing_team = if_else(outcome == "D", "Tie", losing_team))
+=======
+world_cup_total$win_conditions <-
+  ifelse(
+    is.na(world_cup_total$win_conditions) &
+      world_cup_total$outcome == "H",
+    paste(world_cup_total$home_team, "won in regulation"),
+    ifelse(
+      is.na(world_cup_total$win_conditions) &
+        world_cup_total$outcome == "A",
+      paste(world_cup_total$away_team, "won in regulation"),
+      world_cup_total$win_conditions
+    )
+  )
+>>>>>>> 8317503554b881b6c33442c8241ea253f0869290
 ```
 
 To answer our second question, we will create a variable that calculates the proportion of teams from Europe/South American and other continents over each year of the world cup to use in our visualization and observe how this proportion changes over time.
