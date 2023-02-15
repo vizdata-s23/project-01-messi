@@ -35,6 +35,7 @@ We picked this dataset because we thought that the subject would be fresh on peo
 
 wcmatches <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/wcmatches.csv')
 worldcups <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/worldcups.csv')
+penalties <- readr::read_csv("data/penalties_stats_aa.csv") #external data from kaggle
 ```
 
 The `wcmatches` dataset has `r nrow(wcmatches)` observations and `r ncol(wcmatches)` variables. Each observation represents a different match played at a world cup.
@@ -64,6 +65,11 @@ First, we merged the `wcmatches` dataset with the `worldcups` dataset by left jo
 
 world_cup_total <- wcmatches |>
   left_join(worldcups, by = "year")
+
+world_cup_total <- penalties %>%
+  select(-Host) %>%
+  rename('year' = "Year") %>%
+left_join(world_cup_total, penalties, by = 'year')
 ```
 
 **Create New Variables**
@@ -81,21 +87,29 @@ world_cup_total <- world_cup_total |>
          gamesperteam = games/teams)
 ```
 
-```{r}
+```{r fix-conditions, echo=FALSE}
 # Create a new column "win_conditions" and replace missing values based on the value in the "outcome" column
-world_cup_total$win_conditions <-
-  ifelse(
-    is.na(world_cup_total$win_conditions) &
-      world_cup_total$outcome == "H",
-    paste(world_cup_total$home_team, "won in regulation"),
-    ifelse(
-      is.na(world_cup_total$win_conditions) &
-        world_cup_total$outcome == "A",
-      paste(world_cup_total$away_team, "won in regulation"),
-      world_cup_total$win_conditions
-    )
-  )
+#world_cup_total$win_conditions <-
+#  ifelse(
+#    is.na(world_cup_total$win_conditions) &
+#      world_cup_total$outcome == "H",
+#    paste(world_cup_total$home_team, "won in regulation"),
+#    ifelse(
+#      is.na(world_cup_total$win_conditions) &
+#        world_cup_total$outcome == "A",
+#      paste(world_cup_total$away_team, "won in regulation"),
+#      world_cup_total$win_conditions
+#    )
+#  )
 
+world_cup_total <- world_cup_total %>%
+  mutate(win_conditions = 
+           case_when(is.na(win_conditions) & outcome != "D" ~ 
+                       paste(world_cup_total$winning_team, "won in regulation"),
+                    is.na(win_conditions) & outcome == "D" ~ "Tie",
+                                    TRUE ~ win_conditions)) %>%
+  mutate(winning_team = if_else(outcome == "D", "Tie", winning_team)) %>%
+  mutate(losing_team = if_else(outcome == "D", "Tie", losing_team))
 ```
 
 To answer our second question, we will create a variable that calculates the proportion of teams from Europe/South American and other continents over each year of the world cup to use in our visualization and observe how this proportion changes over time.
@@ -104,19 +118,11 @@ To answer our second question, we will create a variable that calculates the pro
 
 There have been new additions to World Cup rules, and soccer in general, over time. This includes the introduction of penalties to break ties, VAR to contest calls on the field, the number of teams in each world cup, and more. There are also factors that affect the players individually, such as the number of additional leagues/tournaments they play in.
 
-The first plot will examine goal scoring trends across world cups in order to examine the effect of new rules on the outcomes of games as well as changes in play over time. We are **planning** to create a line graphs showing the number of goals scored per game of each world cup (This is better than just goals as the number of games increases over time as the WC adds more teams). So, our x-axis will be `year` and the y-axis will be the average `goals_scored` per game of that world cup. We will also add annotations on top of this graph to show when certain changes were implemented in the World Cup, hopefully to highlight/explain changes in patterns. We may add another variable such as continent (color) in order to see if the if the power rankings across the world have shifted over time (in other words, have the goals per game of each continent become more balanced over time or grown further apart?). Additionally using continent in the graph will lead us into our second big question.
+The first plot will examine goal scoring trends across world cups in order to examine the effect of new rules on the outcomes of games as well as changes in play over time. We are **planning** to create a scatterplot showing the number of goals scored per game of each world cup (This is better than just goals as the number of games increases over time as the WC adds more teams). So, our x-axis will be `year` and the y-axis will be the average `goals_scored` per game of that world cup. We will also add annotations on top of this graph to show when certain changes were implemented in the World Cup, hopefully to highlight/explain changes in patterns. We may add another variable such as continent (color) in order to see if the if the power rankings across the world have shifted over time (in other words, have the goals per game of each continent become more balanced over time or grown further apart?). Additionally using continent in the graph will lead us into our second big question.
 
 Our second plot will be a deeper analysis in to the effect of penalty kicks. A very controversial and game-deciding call on the field, the World Cup has seen both the introduction and change in frequency (partially due to VAR) of PKs in its history. Our **plan** for the second plot will be a line graph showing how the frequency of penalty kicks have changed over time. A possible extension of this idea would be showing two lines on the plot, one for total PKs taken per game and one for successful PKs, or one for PKs taken during the game and one for PKs taken during tie-breaking penalty shootouts. This would allow us to further analyze the trends and try to determine the possible explanations.
 
-Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. Along with extra variables we may create in the process, the variables we intend to use are:
-
-| variable       | class     | description                                                                              |
-|----------------|-----------|------------------------------------------------------------------------------------------|
-| year           | double    | the year the world cup took place                                                        |
-| home_score     | double    | the number of goals the home team scored                                                 |
-| away_score     | double    | the number of goals the away team scored                                                 |
-| goals_scored   | double    | the number of goals scored in that year's world cup                                      |
-| win_conditions | character | the method in which the game was decided (i.e. extra time, regulation time or penalties) |
+Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. Along with extra variables we may create in the process, the variables we intend to use are `year`, `home_score`, `away_score`, `goals_scored`, and `win_conditions`.
 
 #### Question #2 Plan:
 
