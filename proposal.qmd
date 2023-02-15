@@ -81,6 +81,23 @@ world_cup_total <- world_cup_total |>
          gamesperteam = games/teams)
 ```
 
+```{r}
+# Create a new column "win_conditions" and replace missing values based on the value in the "outcome" column
+world_cup_total$win_conditions <-
+  ifelse(
+    is.na(world_cup_total$win_conditions) &
+      world_cup_total$outcome == "H",
+    paste(world_cup_total$home_team, "won in regulation"),
+    ifelse(
+      is.na(world_cup_total$win_conditions) &
+        world_cup_total$outcome == "A",
+      paste(world_cup_total$away_team, "won in regulation"),
+      world_cup_total$win_conditions
+    )
+  )
+
+```
+
 To answer our second question, we will create a variable that calculates the proportion of teams from Europe/South American and other continents over each year of the world cup to use in our visualization and observe how this proportion changes over time.
 
 #### Question #1 Plan:
@@ -93,13 +110,13 @@ Our second plot will be a deeper analysis in to the effect of penalty kicks. A v
 
 Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. Along with extra variables we may create in the process, the variables we intend to use are:
 
-| variable       | class     |
-|----------------|-----------|
-| year           | double    |
-| home_score     | double    |
-| away_score     | double    |
-| goals_scored   | double    |
-| win_conditions | character |
+| variable       | class     | description                                                                              |
+|----------------|-----------|------------------------------------------------------------------------------------------|
+| year           | double    | the year the world cup took place                                                        |
+| home_score     | double    | the number of goals the home team scored                                                 |
+| away_score     | double    | the number of goals the away team scored                                                 |
+| goals_scored   | double    | the number of goals scored in that year's world cup                                      |
+| win_conditions | character | the method in which the game was decided (i.e. extra time, regulation time or penalties) |
 
 #### Question #2 Plan:
 
