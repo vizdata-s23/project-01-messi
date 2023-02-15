@@ -1,0 +1,93 @@
+
+
+### Load Packages
+
+```{r}
+#| label: load-pkgs
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(ggplot)
+```
+
+
+### Load Data
+
+```{r}
+#| label: load-data
+#| message: false
+
+wcmatches <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/wcmatches.csv')
+worldcups <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/worldcups.csv')
+```
+
+#### Merge Data
+```{r, echo = FALSE}
+#| label: merge-data
+
+world_cup_total <- wcmatches |>
+  left_join(worldcups, by = "year")
+```
+
+
+## Question 1
+
+
+
+## Question 2
+```{r}
+q2 <- wcmatches %>%
+  pivot_longer(c(home_team, away_team)) %>%
+  rename(home_away = name,
+         team = value)
+
+```
+### Add Continent
+
+#### Making continent lists
+```{r}
+Europe  <- c('France', "Belgium", 'Yugoslavia', 'Romania', 'Sweden', 'Austria', 'Germany', 'Spain', 'Czechoslovakia', 'Hungary', 'Italy', 'Netherlands', 'Switzerland', 'Poland', 'Norway', 'England', 'Scotland', 'West Germany', 'Turkey', 'Northern Ireland', 'Wales', 'Bulgaria', 'Portugal', 'East Germany', 'Denmark', 'Republic of Ireland', 'Greece', 'Croatia', 'FR Yugoslavia', 'Serbia', 'Slovenia', 'Czech Republic', 'Ukraine', 'Slovakia', 'Iceland', 'Bosnia and Herzegovina') 
+
+Asia <- c('South Korea', 'Soviet Union', 'North Korea', 'Israel', 'Iran', 'Cameroon', 'Kuwait', 'Iraq', 'United Arab Emirates', 'Russia', 'Saudi Arabia', 'Japan', 'China PR', 'Australia', 'New Zealand')
+
+Africa <- c('Egypt', 'Morocco', 'Zaire', 'Tunisia', 'Algeria', 'Nigeria', 'South Africa', 'Senegal', 'Ivory Coast', 'Angola', 'Ghana', 'Togo' )
+
+North_America <- c('Mexico', 'United States', 'Cuba', 'Dutch West Indies', 'Haiti', 'El Salvador', "Honduras", 'Canada', 'Costa Rica', 'Jamaica', 'Trinidad and Tobago', 'Panama')
+
+South_America <- c('Brazil', 'Peru', 'Argentina', 'Chile', 'Bolivia', 'Paraguay', 'Uruguay', 'Colombia','Ecuador')
+
+```
+
+
+### Make continent variable
+```{r}
+q2 <- q2 %>%
+  mutate(continent =
+           case_when(team %in% Europe ~ 'Europe',
+                     team %in% Asia ~ 'Asia/Oceania',
+                     team %in% South_America ~ 'South America',
+                     team %in% North_America ~ 'North America',
+                     team %in% Africa ~ 'Africa',
+                     TRUE ~ 'Other'))
+
+```
+
+### Early graphs
+```{r}
+continent_per_year <- q2 %>%
+  group_by(year, continent) %>%
+  summarize(teams = unique(team)) %>%
+  group_by(year, continent) %>%
+  summarize(count_per_continent = n())
+
+freq <- continent_per_year %>%
+  group_by(year) %>%
+  mutate(total = sum(count_per_continent),
+         pct = count_per_continent/total) 
+```
+
+```{r}
+ggplot(freq, aes(x = year, y = pct, color = continent)) + geom_line()
+```
+
