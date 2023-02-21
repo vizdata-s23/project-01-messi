@@ -110,7 +110,7 @@ Our second plot will be a deeper analysis in to the effect of penalty kicks. A v
 Our overall goal is to analyze how games have changed over time in terms of goals scored. Higher scoring games indicate many things about the way teams are playing, and this could be due to the factors we will consider in our graphs. Along with extra variables we may create in the process, the variables we intend to use are:
 
 | variable       | class     | description                                                                              |
-|------------|------------|------------------------------------------------|
+|----------------|-----------|------------------------------------------------------------------------------------------|
 | year           | double    | the year the world cup took place                                                        |
 | home_score     | double    | the number of goals the home team scored                                                 |
 | away_score     | double    | the number of goals the away team scored                                                 |
