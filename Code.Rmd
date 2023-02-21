@@ -233,7 +233,7 @@ ggplot(freq, aes(x = year, y = pct, color = continent)) +
     subtitle = 'by year',
     color = 'Continent'
   ) +
-  scale_color_manual(values = c("#1077C3", "#FEC310", "#49BCE3", "#56042C", "#A80040")) +
+  scale_color_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be"))  +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   geom_rect(
     xmin = 1982.25,
@@ -365,17 +365,13 @@ q2_2 <- world_cup_total |>
       year %in% 2010:2029 ~ "2010s/20s"
       #year %in% 2020:2029 ~ "2020s",
     )
-  ) |>
-  mutate(
-    rounds = fct_relevel(rounds, "Group", "Round 16", "Quarters", 
-                         "Semis", "Third", "Final")
   )
 ```
 
 ```{r}
 #| label: q2_plot2
-#| fig-width: 20
-#| fig-height: 20
+#| fig-width: 10
+#| fig-height: 10
 
 # Exclude "Third" from the levels of the factor variable "rounds"
 q2_2_no_third <- q2_2 %>% filter(rounds != "Third")
@@ -388,21 +384,29 @@ q2_2_no_third$continent <- fct_relevel(q2_2_no_third$continent,
 
 # Create the stacked bar plot
 q2_2_no_third |>
+  mutate(
+    rounds = fct_relevel(rounds, "Final", "Semis", "Quarters", "Round 16", "Group")
+  ) |>
   ggplot(aes(x = rounds, fill = continent)) +
     geom_bar(position = "fill") +
-    facet_wrap(~decade, nrow = 1) +
+    # facet_wrap(~decade, ncol = 1) +
+    facet_grid(decade~.) +
     theme_minimal() +
+    coord_flip() +
     labs(
-      title = "Representation from Continents Across World Cup Rounds",
-      subtitle = "By Decade",
-      x = "Round",
-      y = "Proportion of all teams",
+      title = "European and South American Teams Dominating Later Rounds",
+      x = "Rounds of the World Cup",
+      y = "Proportion",
       fill = "Continent"
     ) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.7),
-          strip.text.x = element_text(face = "bold"),
+    theme(axis.text.x = element_text(vjust = 0.7, face = "bold"),
+          strip.text.y = element_text(angle = 360, face = "bold"),
           legend.title = element_text(size = 12),
-          legend.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#49BCE3", "#A80040", "#FEC310", "#56042C", "#1077C3"))
+          legend.text = element_text(size = 10),
+          axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+          axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0))) +
+  scale_fill_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be")) 
 
 ```
+
+
