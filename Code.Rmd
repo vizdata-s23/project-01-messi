@@ -3,6 +3,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
+
 ### Load Packages
 
 ```{r}
@@ -186,13 +187,88 @@ freq_else <- continent_per_year_else %>%
 ```
 
 ```{r}
-ggplot(freq, aes(x = year, y = pct, color = continent)) + 
+ggplot(freq, aes(x = year, y = pct, color = continent)) +
   geom_point(size = .2) +
   geom_line() +
-  theme_minimal() + 
-  labs(x = 'Year', y = 'Percentage of teams in WC', title = 'Percentage of world cup teams from each continent', subtitle = 'by year', color = 'Continent') +
-  scale_color_manual(values = c("#1077C3", "#FEC310", "#49BCE3", "#56042C", "#A80040")) + 
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+  theme_minimal() +
+  labs(
+    x = 'Year',
+    y = 'Percentage of teams in WC',
+    title = 'Percentage of world cup teams from each continent',
+    subtitle = 'by year',
+    color = 'Continent'
+  ) +
+  scale_color_manual(values = c("#1077C3", "#FEC310", "#49BCE3", "#56042C", "#A80040")) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  geom_rect(
+    xmin = 1982.25,
+    xmax = 1995,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1982,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1982.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 24",
+    size = 2,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1982,
+    y = 1,
+    label = "1982",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  geom_rect(
+    xmin = 1998.25,
+    xmax = 2011,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1998,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1998.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 32",
+    size = 2,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1998,
+    y = 1,
+    label = "1998",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  theme(plot.margin = margin(10, 10, 30, 10))
+
+
 ```
 
 ```{r}
@@ -207,7 +283,9 @@ ggplot(freq_else, aes(x = year, y = pct, color = continent)) +
 ```
 
 ### Question 2: Plot 2
+
 We plan to make a segmented frequency bar chart with the rounds ordered on the x axis from beginning to later rounds, filled by continent, and faceted by decade. The purpose of faceting by decade (or every two decades) is we get to see how representation across the world cup stages has changed over time.
+
 ```{r}
 #| label: q2_plot2_dataprep
 
@@ -221,9 +299,9 @@ q2_2 <- world_cup_total |>
     continent = case_when(
       team %in% Africa ~ "Africa",
       team %in% Asia ~ "Asia",
-      team %in% Europe ~ "Europe",
       team %in% North_America ~ "North America",
       team %in% South_America ~ "South America",
+      team %in% Europe ~ "Europe",
       TRUE ~ "Other"
     ),
     rounds = case_when(
@@ -259,14 +337,22 @@ q2_2 <- world_cup_total |>
   )
 ```
 
-
-
 ```{r}
 #| label: q2_plot2
 #| fig-width: 20
 #| fig-height: 20
 
-q2_2 |>
+# Exclude "Third" from the levels of the factor variable "rounds"
+q2_2_no_third <- q2_2 %>% filter(rounds != "Third")
+
+# Reorder the factor levels of the "continent" variable
+q2_2_no_third$continent <- fct_relevel(q2_2_no_third$continent, 
+                                        "Other", "Africa", 
+                                        "North America", "Asia", "South America", 
+                                        "Europe")
+
+# Create the stacked bar plot
+q2_2_no_third |>
   ggplot(aes(x = rounds, fill = continent)) +
     geom_bar(position = "fill") +
     facet_wrap(~decade, nrow = 1) +
@@ -274,16 +360,14 @@ q2_2 |>
     labs(
       title = "Representation from Continents Across World Cup Rounds",
       subtitle = "By Decade",
-      x = "Rounds",
-      y = "Proportion",
+      x = "Round",
+      y = "Proportion of all teams",
       fill = "Continent"
     ) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.7),
           strip.text.x = element_text(face = "bold"),
           legend.title = element_text(size = 12),
           legend.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#1077C3", "#FEC310", "#49BCE3", "#56042C", "#A80040"))
-    
-    
-```
+  scale_fill_manual(values = c("#49BCE3", "#A80040", "#FEC310", "#56042C", "#1077C3"))
 
+```
