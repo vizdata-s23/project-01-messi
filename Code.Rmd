@@ -69,8 +69,10 @@ names(worldcups)
 
 ```{r}
 penaltieswgoalsnew <- merge(penaltiesnew, worldcups, by = "year", all.x = TRUE)
+penaltieswgoalsnew$goals_scored[is.na(penaltieswgoalsnew$goals_scored)] <- 172
 penaltieswgoalsnew <- penaltieswgoalsnew |>
-  mutate(propgoalsthatarepens = PenaltiesScored/goals_scored)
+  mutate(propgoalsthatarepens = PenaltiesScored/goals_scored,
+         goalspergame = goals_scored/MatchesPlayed)
 
 ```
 
