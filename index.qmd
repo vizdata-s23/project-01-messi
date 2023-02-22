@@ -12,6 +12,87 @@ execute:
 
 (1 paragraph): Project abstract.
 
+```{r}
+#| label: load-pkgs
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+#| label: load-data
+#| message: false
+
+wcmatches <-
+  readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/wcmatches.csv'
+  )
+worldcups <-
+  readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-29/worldcups.csv'
+  )
+penalties <-
+  readr::read_csv("data/penalties_stats_aa.csv") #external data from kaggle
+```
+
+```{r}
+#| label: merge-data
+
+world_cup_total <- wcmatches |>
+  left_join(worldcups, by = "year")
+
+world_cup_total <- penalties %>%
+  select(-Host) %>%
+  rename('year' = "Year") %>%
+  left_join(world_cup_total, penalties, by = 'year')
+```
+
+```{r}
+#| label: new-variables
+
+penalties2022 <- data.frame(2022, "Qatar", 64, 17, 23, 5, 1)
+names(penalties2022) <-
+  c(
+    "Year",
+    "Host",
+    "MatchesPlayed",
+    "PenaltiesScored",
+    "PenaltiesAwarded",
+    "PenaltiesSaved",
+    "PenaltiesMissed"
+  )
+
+penaltiesnew <- rbind(penalties, penalties2022)
+
+
+world_cup_total <- world_cup_total |>
+  mutate(
+    goalspergame = goals_scored / games,
+    attendancepergame = attendance / games,
+    gamesperteam = games / teams
+  )
+
+penaltiesnew <- penaltiesnew |>
+  mutate(
+    penaltiespergame = PenaltiesAwarded / MatchesPlayed,
+    penaltymakepercentage = PenaltiesScored / PenaltiesAwarded
+  )
+
+names(penaltiesnew)[names(penaltiesnew) == "Year"] <- "year"
+
+penaltieswgoalsnew <-
+  merge(penaltiesnew, worldcups, by = "year", all.x = TRUE)
+penaltieswgoalsnew$goals_scored[is.na(penaltieswgoalsnew$goals_scored)] <-
+  172
+penaltieswgoalsnew <- penaltieswgoalsnew |>
+  mutate(
+    propgoalsthatarepens = PenaltiesScored / goals_scored,
+    goalspergame = goals_scored / MatchesPlayed
+  )
+```
+
 ------------------------------------------------------------------------
 
 ## Introduction
@@ -30,15 +111,158 @@ To explore our question, we will be using the `wcmatches` and `worldcups` datase
 
 (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
 
-For the first plot, we will be making a scatterplot showing the goals scored per game during each World Cup. This will make any trends over time very visible and allow for our annotations, which will hopefully reveal more information. We are going to indicate years, using the shape and color of points, in which a new rule or notable event occurred and provide a brief description. Through this, we hope to provide reasoning for long and short-term trends in the plot.
+For the first plot, we will be making a scatterplot showing the goals scored per game during each World Cup. This will make the goal scoring trends over time visible and allow for our annotations to reveal possible causes in patterns. We will be coloring points based on whether that tournament had a new rule, and the shape of the point will indicate whether a notable event took place during that tournament. We will add text annotations over the plot indicating what the rule or event that happened during a tournament was.
 
 ### Analysis
 
 (2-3 code blocks, 2 figures, text/code comments as needed): In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with **ggplot2**. Do not use base R or lattice plotting functions.
 
+#### Plot 1
+
+```{r}
+#| label: q1-plot1-dataprep
+q1 <- world_cup_total |>
+  add_row(year = 1942,
+          goalspergame = 0,
+          country = "Germany") |>
+  add_row(year = 1946,
+          goalspergame = 0,
+          country = "Brazil") |>
+  mutate(
+    new_rule = case_when(year %in% c(1970, 1982, 1998, 2014, 2018) ~ "Yes",
+                         TRUE ~ "No"),
+    event = case_when(year %in% c(1942, 1946, 1954, 1966, 1978) ~ "Yes",
+                      TRUE ~ "No")
+  ) |>
+  group_by(year, goalspergame)
+```
+
+```{r}
+#| label: q1-plot1
+ggplot(q1, aes(
+  x = year,
+  y = goalspergame,
+  color = new_rule,
+  shape = event
+)) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = seq(1930, 2018, by = 8)) +
+  theme_minimal() +
+  scale_color_manual(values = c("#A80040", "#1077C3")) +
+  scale_shape_manual(values = c(16, 8)) +
+  labs(
+    title = "Goals per game have decreased over time",
+    subtitle = "For World Cups 1930-2018",
+    x = "Year",
+    y = "Goals per game",
+    color = "New rule",
+    shape = "Notable event"
+  ) +
+  annotate(
+    geom = "text",
+    label = "1942, 1946: cancelled \ndue to WWII",
+    x = 1944,
+    y = 0.5,
+    size = 2.5,
+    color = "#A80040"
+  ) +
+  annotate(
+    geom = "text",
+    label = "1954: most goals by\na country (Hungary, 27)",
+    x = 1949,
+    y = 5,
+    size = 2.5,
+    color = "#A80040"
+  ) +
+  annotate(
+    geom = "text",
+    label = "1966: first hattrick\nin a World Cup final",
+    x = 1958,
+    y = 2.4,
+    size = 2.5,
+    color = "#A80040"
+  ) +
+  annotate(
+    geom = "text",
+    label = "1978: hardest World\nCup to qualify for",
+    x = 1982,
+    y = 5.1,
+    size = 2.5,
+    color = "#A80040"
+  ) +
+  geom_segment(aes(
+    x = 1978,
+    y = 2.68,
+    xend = 1978,
+    yend = 4.8
+  ),
+  color = "#A80040") +
+  annotate(
+    geom = "text",
+    label = "1970: penalties introduced",
+    x = 1970,
+    y = 1.6,
+    size = 2.5,
+    color = "#1077C3"
+  ) +
+  geom_segment(aes(
+    x = 1970,
+    y = 3,
+    xend = 1970,
+    yend = 1.8
+  ),
+  color = "#1077C3") +
+  annotate(
+    geom = "text",
+    label = "1982: 16 to 24 teams\n1998: 24 to 32 teams",
+    x = 1998,
+    y = 4,
+    size = 2.5,
+    color = "#1077C3"
+  ) +
+  geom_segment(aes(
+    x = 1982,
+    y = 2.8,
+    xend = 1998,
+    yend = 3.7
+  ),
+  color = "#1077C3") +
+  geom_segment(aes(
+    x = 1998,
+    y = 2.7,
+    xend = 1998,
+    yend = 3.7
+  ),
+  color = "#1077C3") +
+  annotate(
+    geom = "text",
+    label = "2014: goal line technology\n2018: VAR introduced",
+    x = 2006,
+    y = 1,
+    size = 2.5,
+    color = "#1077C3"
+  ) +
+  geom_segment(aes(
+    x = 2014,
+    y = 2.7,
+    xend = 2010,
+    yend = 1.3
+  ),
+  color = "#1077C3") +
+  geom_segment(aes(
+    x = 2018,
+    y = 2.6,
+    xend = 2010,
+    yend = 1.3
+  ),
+  color = "#1077C3")
+```
+
 ### Discussion
 
 (1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots. Speculate about why the data looks the way it does.
+
+The overall trend in the scatterplot is the decrease in goals scored per game across the World Cups. After a short 3 tournament long increase, the number of goals scored per game has steadily decreased from about 4 goals to just over 2. The noticeable outliers are 1942 and 1946, which were cancelled due to WWII, and 1954, which was dominated by the Uruguay team who set the record for the most goals scored by one country. The introduction of penalties did not appear to affect goal scoring. The expansion of the tournament from 16 to 24 to 32 teams also did not have a lasting impact other than the 2-tournament downward trend following 1982. It seems that the implementation of technology in arbitrating games has produced the largest effect in decades. Goal line technology, which notifies the referee when the entire ball crosses the goal line, and VAR (video assistant referee) which allows referees to rewatch plays and either uphold or reverse their initial calls on the field, have both increased the number of goals being scored per game. This is because goal line technology allows referees to stop play the moment a true goal is scored, despite limited vision, and VAR has caused more penalty kicks to be called, which frequently result in goals. 
 
 ## Question 2: Representation of Non-European and South American Teams in the World Cup
 
@@ -63,6 +287,16 @@ For our second plot, we will make a segmented relative frequency barplot to illu
 ```{r}
 #| label: q2_plot2_dataprep
 
+Europe  <- c('France', "Belgium", 'Yugoslavia', 'Romania', 'Sweden', 'Austria', 'Germany', 'Spain', 'Czechoslovakia', 'Hungary', 'Italy', 'Netherlands', 'Switzerland', 'Poland', 'Norway', 'England', 'Scotland', 'West Germany', 'Turkey', 'Northern Ireland', 'Wales', 'Bulgaria', 'Portugal', 'East Germany', 'Denmark', 'Republic of Ireland', 'Greece', 'Croatia', 'FR Yugoslavia', 'Serbia', 'Slovenia', 'Czech Republic', 'Ukraine', 'Slovakia', 'Iceland', 'Bosnia and Herzegovina') 
+
+Asia <- c('South Korea', 'Soviet Union', 'North Korea', 'Israel', 'Iran', 'Cameroon', 'Kuwait', 'Iraq', 'United Arab Emirates', 'Russia', 'Saudi Arabia', 'Japan', 'China PR', 'Australia', 'New Zealand')
+
+Africa <- c('Egypt', 'Morocco', 'Zaire', 'Tunisia', 'Algeria', 'Nigeria', 'South Africa', 'Senegal', 'Ivory Coast', 'Angola', 'Ghana', 'Togo' )
+
+North_America <- c('Mexico', 'United States', 'Cuba', 'Dutch West Indies', 'Haiti', 'El Salvador', "Honduras", 'Canada', 'Costa Rica', 'Jamaica', 'Trinidad and Tobago', 'Panama')
+
+South_America <- c('Brazil', 'Peru', 'Argentina', 'Chile', 'Bolivia', 'Paraguay', 'Uruguay', 'Colombia','Ecuador')
+
 q2_2 <- world_cup_total |>
   pivot_longer(
     cols = c(home_team, away_team),
@@ -83,11 +317,12 @@ q2_2 <- world_cup_total |>
       stage %in% c("Round of 16") ~ "Round 16",
       stage == "Quarterfinals" ~ "Quarters",
       stage == "Semifinals" ~ "Semis",
-      stage == "Final Round" & 
+      stage == "Final Round" &
         winning_team == "Sweden" & losing_team == "Spain" ~ "Third",
       stage == "Third place" ~ "Third",
-      stage == "Final Round" & 
-        winning_team == "Uruguay" & losing_team == "Brazil" ~ "Final",
+      stage == "Final Round" &
+        winning_team == "Uruguay" &
+        losing_team == "Brazil" ~ "Final",
       stage == "Final" ~ "Final",
       TRUE ~ "Semis"
     ),
@@ -108,41 +343,54 @@ q2_2 <- world_cup_total |>
 ```
 
 ```{r}
-#| label: fig-q2-plot2
+#| label: q2-plot2
 #| warning: false
 
 # Exclude "Third" from the levels of the factor variable "rounds"
 q2_2_no_third <- q2_2 %>% filter(rounds != "Third")
 
 # Reorder the factor levels of the "continent" variable
-q2_2_no_third$continent <- fct_relevel(q2_2_no_third$continent, 
-                                        "Other", "Africa", 
-                                        "North America", "Asia", "South America", 
-                                        "Europe")
+q2_2_no_third$continent <- fct_relevel(
+  q2_2_no_third$continent,
+  "Other",
+  "Africa",
+  "North America",
+  "Asia",
+  "South America",
+  "Europe"
+)
 
 # Create the stacked bar plot
 q2_2_no_third |>
-  mutate(
-    rounds = fct_relevel(rounds, "Final", "Semis", "Quarters", "Round 16", "Group")
-  ) |>
+  mutate(rounds = fct_relevel(rounds, "Final", "Semis", "Quarters", "Round 16", "Group")) |>
   ggplot(aes(x = rounds, fill = continent)) +
-    geom_bar(position = "fill") +
-    # facet_wrap(~decade, ncol = 1) +
-    facet_grid(decade~.) +
-    theme_minimal() +
-    coord_flip() +
-    labs(
-      title = "European and South American Teams Dominating Later Rounds",
-      x = "Rounds of the World Cup",
-      y = "Proportion",
-      fill = "Continent"
-    ) +
-    theme(axis.text.x = element_text(vjust = 0.7, face = "bold"),
-          strip.text.y = element_text(angle = 360, face = "bold"),
-          legend.title = element_text(size = 12),
-          legend.text = element_text(size = 10),
-          axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
-          axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0))) +
+  geom_bar(position = "fill") +
+  # facet_wrap(~decade, ncol = 1) +
+  facet_grid(decade ~ .) +
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "European and South American Teams Dominating Later Rounds",
+       x = "Rounds of the World Cup",
+       y = "Proportion",
+       fill = "Continent") +
+  theme(
+    axis.text.x = element_text(vjust = 0.7, face = "bold"),
+    strip.text.y = element_text(angle = 360, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    axis.title.y = element_text(margin = margin(
+      t = 0,
+      r = 20,
+      b = 0,
+      l = 0
+    )),
+    axis.title.x = element_text(margin = margin(
+      t = 15,
+      r = 0,
+      b = 0,
+      l = 0
+    ))
+  ) +
   scale_fill_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be")) 
 ```
 
