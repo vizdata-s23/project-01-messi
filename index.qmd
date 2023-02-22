@@ -111,6 +111,8 @@ To explore our question, we will be using the `wcmatches` and `worldcups` datase
 
 For the first plot, we will be making a scatterplot showing the goals scored per game during each World Cup. This will make the goal scoring trends over time visible and allow for our annotations to reveal possible causes in patterns. We will be coloring points based on whether that tournament had a new rule, and the shape of the point will indicate whether a notable event took place during that tournament. We will add text annotations over the plot indicating what the rule or event that happened during a tournament was.
 
+NEED APPROACH FOR PLOT 2
+
 ### Analysis
 
 #### Plot 1
@@ -254,9 +256,46 @@ ggplot(q1, aes(
   color = "#1077C3")
 ```
 
+#### Plot 2
+
+```{r}
+#| label: fig-q1-plot2
+ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
+  geom_line(aes(color = "Penalties per game")) +
+  #geom_point(aes(size = goalspergame)) +
+  geom_line(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties")) +
+  geom_smooth(aes(color = "Penalties per game"), method = "lm", se = FALSE) +
+  geom_smooth(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties"), method = "lm", se = FALSE) +
+  labs(x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
+  scale_color_manual( 
+                     values = c("Penalties per game" = "black", "Prop. of goals that are penalties" = "red")) +
+  guides(size = guide_legend(title = "Goals per game")) +
+  scale_size(range = c(2, 8)) +
+  annotate(
+    geom = "text",
+    label = "2018: VAR introduced",
+    x = 1992,
+    y = 0.48,
+    size = 3.5,
+    color = "#1077C3"
+  ) +
+  geom_segment(aes(
+    x = 2015,
+    y = 0.5,
+    xend = 2015,
+    yend = 0
+  ),
+  color = "#1077C3",
+  linetype = "dashed") +
+  theme_minimal() +
+  theme(legend.position="bottom")
+```
+
 ### Discussion
 
 The overall trend in the scatterplot is the decrease in goals scored per game across the World Cups. After a short 3 tournament long increase, the number of goals scored per game has steadily decreased from about 4 goals to just over 2. The noticeable outliers are 1942 and 1946, which were cancelled due to WWII, and 1954, which was dominated by the Uruguay team who set the record for the most goals scored by one country. The introduction of penalties did not appear to affect goal scoring. The expansion of the tournament from 16 to 24 to 32 teams also did not have a lasting impact other than the 2-tournament downward trend following 1982. It seems that the implementation of technology in arbitrating games has produced the largest effect in decades. Goal line technology, which notifies the referee when the entire ball crosses the goal line, and VAR (video assistant referee) which allows referees to rewatch plays and either uphold or reverse their initial calls on the field, have both increased the number of goals being scored per game. This is because goal line technology allows referees to stop play the moment a true goal is scored, despite limited vision, and VAR has caused more penalty kicks to be called, which frequently result in goals. 
+
+NEED DISCUSSION FOR PLOT 2
 
 ## Question 2: Representation of Non-European and South American Teams in the World Cup
 
