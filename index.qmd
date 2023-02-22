@@ -52,45 +52,16 @@ world_cup_total <- penalties %>%
 ```{r}
 #| label: new-variables
 
-penalties2022 <- data.frame(2022, "Qatar", 64, 17, 23, 5, 1)
-names(penalties2022) <-
-  c(
-    "Year",
-    "Host",
-    "MatchesPlayed",
-    "PenaltiesScored",
-    "PenaltiesAwarded",
-    "PenaltiesSaved",
-    "PenaltiesMissed"
-  )
+penalties2022 <- data.frame(2022, "Qatar", 64, 17, 23, 5, 1)   
+names(penalties2022) <- c("Year", "Host", "MatchesPlayed", "PenaltiesScored", "PenaltiesAwarded", "PenaltiesSaved", "PenaltiesMissed")  
 
-penaltiesnew <- rbind(penalties, penalties2022)
+penaltiesnew <- rbind(penalties, penalties2022)  
 
 
 world_cup_total <- world_cup_total |>
-  mutate(
-    goalspergame = goals_scored / games,
-    attendancepergame = attendance / games,
-    gamesperteam = games / teams
-  )
-
-penaltiesnew <- penaltiesnew |>
-  mutate(
-    penaltiespergame = PenaltiesAwarded / MatchesPlayed,
-    penaltymakepercentage = PenaltiesScored / PenaltiesAwarded
-  )
-
-names(penaltiesnew)[names(penaltiesnew) == "Year"] <- "year"
-
-penaltieswgoalsnew <-
-  merge(penaltiesnew, worldcups, by = "year", all.x = TRUE)
-penaltieswgoalsnew$goals_scored[is.na(penaltieswgoalsnew$goals_scored)] <-
-  172
-penaltieswgoalsnew <- penaltieswgoalsnew |>
-  mutate(
-    propgoalsthatarepens = PenaltiesScored / goals_scored,
-    goalspergame = goals_scored / MatchesPlayed
-  )
+  mutate(goalspergame = goals_scored/games,
+         attendancepergame = attendance/games,
+         gamesperteam = games/teams)
 ```
 
 ------------------------------------------------------------------------
@@ -261,6 +232,51 @@ ggplot(q1, aes(
 ```
 
 #### Plot 2
+
+```{r}
+#| label: q1-plot2-setup
+#| warning: false
+
+penalties2022 <- data.frame(2022, "Qatar", 64, 17, 23, 5, 1)
+names(penalties2022) <-
+  c(
+    "Year",
+    "Host",
+    "MatchesPlayed",
+    "PenaltiesScored",
+    "PenaltiesAwarded",
+    "PenaltiesSaved",
+    "PenaltiesMissed"
+  )
+
+penaltiesnew <- rbind(penalties, penalties2022)
+
+
+world_cup_total <- world_cup_total |>
+  mutate(
+    goalspergame = goals_scored / games,
+    attendancepergame = attendance / games,
+    gamesperteam = games / teams
+  )
+
+penaltiesnew <- penaltiesnew |>
+  mutate(
+    penaltiespergame = PenaltiesAwarded / MatchesPlayed,
+    penaltymakepercentage = PenaltiesScored / PenaltiesAwarded
+  )
+
+names(penaltiesnew)[names(penaltiesnew) == "Year"] <- "year"
+
+penaltieswgoalsnew <-
+  merge(penaltiesnew, worldcups, by = "year", all.x = TRUE)
+penaltieswgoalsnew$goals_scored[is.na(penaltieswgoalsnew$goals_scored)] <-
+  172
+penaltieswgoalsnew <- penaltieswgoalsnew |>
+  mutate(
+    propgoalsthatarepens = PenaltiesScored / goals_scored,
+    goalspergame = goals_scored / MatchesPlayed
+  )
+```
 
 ```{r}
 #| label: fig-q1-plot2
