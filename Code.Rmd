@@ -63,8 +63,6 @@ penaltiesnew <- penaltiesnew |>
          penaltymakepercentage = PenaltiesScored/PenaltiesAwarded)
 
 names(penaltiesnew)[names(penaltiesnew) == "Year"] <- "year"
-names(worldcups)
-
 ```
 
 ```{r}
@@ -73,18 +71,25 @@ penaltieswgoalsnew$goals_scored[is.na(penaltieswgoalsnew$goals_scored)] <- 172
 penaltieswgoalsnew <- penaltieswgoalsnew |>
   mutate(propgoalsthatarepens = PenaltiesScored/goals_scored,
          goalspergame = goals_scored/MatchesPlayed)
-
 ```
 
+Make a line plot of the penaltiespergame for each year where the size of each point varies by goalspergame with another line underneath it showing propgoalsthatarepens
+
 ```{r}
-# calculate correlation coefficient
-corr <- cor(penaltieswgoalsnew$PenaltiesScored, penaltieswgoalsnew$goals_scored)
+ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
+  geom_line(aes(color = "Penalties per game")) +
+  geom_point(aes(size = goalspergame)) +
+  geom_line(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties")) +
+  geom_smooth(aes(color = "Penalties per game"), method = "lm", se = FALSE) +
+  geom_smooth(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties"), method = "lm", se = FALSE) +
+  labs(x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
+  scale_color_manual(name = "Legend", 
+                     values = c("Penalties per game" = "black", "Prop. of goals that are penalties" = "red")) +
+  guides(size = guide_legend(title = "Goals per game")) +
+  scale_size(range = c(2, 8)) +
+  theme_minimal()
 
-# calculate R-squared value
-rsq <- corr^2
 
-# print R-squared value
-rsq
 ```
 
 ## Question 1
