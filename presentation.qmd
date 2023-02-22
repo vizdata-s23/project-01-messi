@@ -141,7 +141,7 @@ penaltieswgoalsnew <- penaltieswgoalsnew |>
     Plot 2
 
     -   line graph showing how the number of penalties per game and the proportion of goals that are penalties has changed over time
-    -   Used world cup aggregated tournament data (i.e. total number of penalties scored in a given year's tournament)
+    -   Used world cup aggregated tournament data
     -   Includes 2022 world cup data to better see the effect of VAR on penalties
     :::
     :::
