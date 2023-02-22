@@ -105,13 +105,13 @@ The datasets we used for this project revolve around the Fifa World Cup, a quada
 
 Throughout the World Cup's history, many new rules and technologies have been implemented, changing the way soccer is played. This includes the introduction of penalties for tie breaking, VAR to contest calls on the field, increasing the number of teams in each World Cup, and many more. These factors affect how teams play and have forced players to adapt their strategies. In order to assess the impact caused to the overall game, the most straightforward metric to consider is the number of goals scored. Although the score can oversimplify a very complex game, many important decisions are made from it, including which countries make it into the World Cup and ultimately win the tournament. We, as soccer fans, have decided to analyze goals because it is unarguably the most important and entertaining part of the game.
 
-To explore our question, we will be using the `wcmatches` and `worldcups` datasets from TidyTuesday, and merging in external data from Kaggle containing specifics into penalty kicks taken during the World Cups. Specifically, we will be looking at the variables with year, goals per game, penalties awarded and penalties scored, as well as created variables indicating the implementation of a new rule or a notable event. We will be analyzing both the broad concept of total goals scored as well as penalty kicks. Penalties are a very controversial and powerful part of soccer. For perspective, 3 World Cup finals have been decided by penalty shootouts. To see how the game has been affected since the introduction of penalties in 1970, we will be analyzing the number of penalties awarded and scored over time. This, in conjunction with the rules implemented, will give us insight into how penalties have affected scores and how players have adapted to the changing rules.
+To explore our question, we will be using the `wcmatches` and `worldcups` datasets from TidyTuesday, and merging in external data from Kaggle containing specifics into penalty kicks taken during the World Cups. Specifically, we will be looking at the variables with year, goals per game, penalties awarded and penalties per game, as well as created variables indicating the implementation of a new rule or a notable event. We will be analyzing both the broad concept of total goals scored as well as penalty kicks. Penalties are a very controversial and powerful part of soccer. For perspective, 3 World Cup finals have been decided by penalty shootouts. To see how the game has been affected since the introduction of penalties in 1970, we will be analyzing the number of penalties awarded over time, specifically focusing on the differences before and after the implementation of VAR technology. This, in conjunction with the rules implemented, will give us insight into how penalties have affected scores and how players have adapted to the changing rules.
 
 ### Approach
 
 For the first plot, we will be making a scatterplot showing the goals scored per game during each World Cup. This will make the goal scoring trends over time visible and allow for our annotations to reveal possible causes in patterns. We will be coloring points based on whether that tournament had a new rule, and the shape of the point will indicate whether a notable event took place during that tournament. We will add text annotations over the plot indicating what the rule or event that happened during a tournament was.
 
-NEED APPROACH FOR PLOT 2
+For the second plot, we will make a line graph showing trends of penalty kicks over time. We will be examining penalties per game and the proportion of goals that are penalties, as both metrics are within similar ranges. The line graph will show us how these metrics have changed from tournament to tournament. We will annotate over the graph indicating when VAR was introduced, hopefully to point out the dramatic shift in penalties.
 
 ### Analysis
 
@@ -126,6 +126,8 @@ q1 <- world_cup_total |>
   add_row(year = 1946,
           goalspergame = 0,
           country = "Brazil") |>
+  add_row(year = 2022,
+          goalspergame = 172/64) |>
   mutate(
     new_rule = case_when(year %in% c(1970, 1982, 1998, 2014, 2018) ~ "Yes",
                          TRUE ~ "No"),
@@ -137,6 +139,8 @@ q1 <- world_cup_total |>
 
 ```{r}
 #| label: fig-q1-plot1
+#| fig-cap: Goals per game from 1930-2022
+
 ggplot(q1, aes(
   x = year,
   y = goalspergame,
@@ -144,13 +148,13 @@ ggplot(q1, aes(
   shape = event
 )) +
   geom_point(size = 2) +
-  scale_x_continuous(breaks = seq(1930, 2018, by = 8)) +
+  scale_x_continuous(breaks = seq(1930, 2022, by = 8)) +
   theme_minimal() +
   scale_color_manual(values = c("#A80040", "#1077C3")) +
   scale_shape_manual(values = c(16, 8)) +
   labs(
     title = "Goals per game have decreased over time",
-    subtitle = "For World Cups 1930-2018",
+    subtitle = "For World Cups 1930-2022",
     x = "Year",
     y = "Goals per game",
     color = "New rule",
@@ -260,13 +264,16 @@ ggplot(q1, aes(
 
 ```{r}
 #| label: fig-q1-plot2
+#| fig-cap: Penalty trends from 1970-2022
+#| warning: false
+
 ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
+  scale_x_continuous(breaks = seq(1930, 2022, by = 8)) +
   geom_line(aes(color = "Penalties per game")) +
-  #geom_point(aes(size = goalspergame)) +
   geom_line(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties")) +
   geom_smooth(aes(color = "Penalties per game"), method = "lm", se = FALSE) +
   geom_smooth(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties"), method = "lm", se = FALSE) +
-  labs(x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
+  labs(title = "Penalties have increased with VAR", x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
   scale_color_manual( 
                      values = c("Penalties per game" = "black", "Prop. of goals that are penalties" = "red")) +
   guides(size = guide_legend(title = "Goals per game")) +
@@ -293,9 +300,9 @@ ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
 
 ### Discussion
 
-The overall trend in the scatterplot is the decrease in goals scored per game across the World Cups. After a short 3 tournament long increase, the number of goals scored per game has steadily decreased from about 4 goals to just over 2. The noticeable outliers are 1942 and 1946, which were cancelled due to WWII, and 1954, which was dominated by the Uruguay team who set the record for the most goals scored by one country. The introduction of penalties did not appear to affect goal scoring. The expansion of the tournament from 16 to 24 to 32 teams also did not have a lasting impact other than the 2-tournament downward trend following 1982. It seems that the implementation of technology in arbitrating games has produced the largest effect in decades. Goal line technology, which notifies the referee when the entire ball crosses the goal line, and VAR (video assistant referee) which allows referees to rewatch plays and either uphold or reverse their initial calls on the field, have both increased the number of goals being scored per game. This is because goal line technology allows referees to stop play the moment a true goal is scored, despite limited vision, and VAR has caused more penalty kicks to be called, which frequently result in goals. 
+The overall trend in @fig-q1-plot1 is the decrease in goals scored per game across the World Cups. After a short 3 tournament long increase, the number of goals scored per game has steadily decreased from about 4 goals to just over 2. The noticeable outliers are 1942 and 1946, which were cancelled due to WWII, and 1954, which was dominated by the Uruguay team who set the record for the most goals scored by one country. The introduction of penalties did not appear to affect goal scoring. The expansion of the tournament from 16 to 24 to 32 teams also did not have a lasting impact other than the 2-tournament downward trend following 1982. It seems that the implementation of technology in arbitrating games has produced the largest effect in decades. The notable spike in 2014 and following years shows an increase in the number of goals scored per game. Goal line technology, which notifies the referee when the entire ball crosses the goal line, and VAR (video assistant referee) which allows referees to rewatch plays and either uphold or reverse their initial calls on the field, have both increased the number of goals being scored per game. This is because goal line technology allows referees to stop play the moment a true goal is scored, despite limited vision, and VAR has caused more penalty kicks to be called, which frequently result in goals. 
 
-NEED DISCUSSION FOR PLOT 2
+In @fig-q1-plot2, there is an overall increase both in penalties per game and the proportion of goals that are penalties. The plot starts in 1970, when penalties were introduced to the World Cup. The penalties per game seems to change fairly dramatically across World Cups, but following the introduction of VAR, there is an unparalleled spike in the number of penalties per game during the 2018 World Cup. Referees were now able to rewatch plays and determine whether fouls had been committed to award these penalties, causing a huge uproar. The FIFA referees have tried reducing their dependency on VAR, as seen in the downward trend in the 2022 World Cup, but penalties still remain much more prevalent than they were in past World Cups. The proportion of goals that are penalties also experienced a jump in 2018 with a decrease in 2022. Since this data does not include penalty shootouts, we are only counting penalties taken during the game. It is clear that penalties are becoming more important, and we should expect to see more games decided by them.
 
 ## Question 2: Representation of Non-European and South American Teams in the World Cup
 
@@ -360,8 +367,8 @@ freq <- continent_per_year %>%
 ```
 
 ```{r}
-#| lavel: fig-q2-plot1
-#| fig-cap: representation of continents in the world cup across time
+#| label: fig-q2-plot1
+#| fig-cap: Representation of continents in the world cup across time
 #| warning: false
 ggplot(freq, aes(x = year, y = pct, color = continent)) +
   geom_point(size = .2) +
@@ -496,7 +503,7 @@ q2_2 <- world_cup_total |>
 
 ```{r}
 #| label: fig-q2-plot2
-#| fig-cap: representation of non-European and South American teams decrease across rounds
+#| fig-cap: Representation of non-European and South American teams decrease across rounds
 #| warning: false
 
 # Exclude "Third" from the levels of the factor variable "rounds"
@@ -549,9 +556,9 @@ q2_2_no_third |>
 
 ### Discussion
 
-According to @fig-q2-plot1, we can see that the dominant continent in the world cup appears to be Europe, at least from a participation perspective. Outside of the first world cup (which took place in Uruguay) that has more South American teams than European teams, Europe is the most represented continent, even making up a majority up until the 90s. However, while Europe is still the most represented continent today, that share has been greatly diminished. We can see that the proportion World cup teams that come from Europe slowly decreases over time, especially after the addition of more teams in 1982 and 1998. For example, since the addition of more team sin 1982, the proportion of African and Asian/Oceanic teams in the cup has nearly doubled from around 10% to 20%.
+According to @fig-q2-plot1 , we can see that the dominant continent in the world cup appears to be Europe, at least from a participation perspective. Outside of the first world cup (which took place in Uruguay) that has more South American teams than European teams, Europe is the most represented continent, even making up a majority up until the 90s. However, while Europe is still the most represented continent today, that share has been greatly diminished. We can see that the proportion World cup teams that come from Europe slowly decreases over time, especially after the addition of more teams in 1982 and 1998. For example, since the addition of more team sin 1982, the proportion of African and Asian/Oceanic teams in the cup has nearly doubled from around 10% to 20%.
 
-So what might be the reason for Europe early dominance and recent decline? Europe has always been a powerhouse in football. Even at the last world cup, Europe had 7 of the top 10 teams coming into the world cup (according to 538, a sports analytics site https://projects.fivethirtyeight.com/2022-world-cup-predictions/), with the other 3 belonging to South America. However, since the addition of new teams in 1982 and 1998 and the addition of new qualifying rules, there is a capped amount of European teams that can be in the cup, replaced by an increase in space for other continents. For example, in the last world cup, there were 5 spots reserved for African teams, and for the next world cup, when the number of teams increases to 48, 9 of those spots will be reserved for Africans. One might ask whether these rule changes are good for the sport if European teams seem to be the most dominant? Why not just have the 32 best teams in the world? Because that would defying the point of the world cup. The world cup is one of the single most important and unifying events in the world. The entire globe comes together to watch a the world cup, and reserving it to Europe and South America would no longer make it a 'world' cup. Furthermore, as we saw this year, despite it being linked to the bottom quarter of teams in the cup according to sports analytics, Morocco made a run to the semi-finals, beating teams like Portugal, Spain and Belgium. So the movement we see in the graph with more representation is, in our eyes, a great thing for the sport highlights a bright future for the cup! Now we can look at if this increase in representation in recent years results in more representation in late rounds of the cup
+So what might be the reason for Europe early dominance and recent decline? Europe has always been a powerhouse in football. Even at the last world cup, Europe had 7 of the top 10 teams coming into the world cup (according to [538](https://projects.fivethirtyeight.com/2022-world-cup-predictions/), a sports analytics site), with the other 3 belonging to South America. However, since the addition of new teams in 1982 and 1998 and the addition of new qualifying rules, there is a capped amount of European teams that can be in the cup, replaced by an increase in space for other continents. For example, in the last world cup, there were 5 spots reserved for African teams, and for the next world cup, when the number of teams increases to 48, 9 of those spots will be reserved for Africans. One might ask whether these rule changes are good for the sport if European teams seem to be the most dominant? Why not just have the 32 best teams in the world? Because that would defying the point of the world cup. The world cup is one of the single most important and unifying events in the world. The entire globe comes together to watch a the world cup, and reserving it to Europe and South America would no longer make it a 'world' cup. Furthermore, as we saw this year, despite it being linked to the bottom quarter of teams in the cup according to sports analytics, Morocco made a run to the semi-finals, beating teams like Portugal, Spain and Belgium. So the movement we see in the graph with more representation is, in our eyes, a great thing for the sport highlights a bright future for the cup! Now we can look at if this increase in representation in recent years results in more representation in late rounds of the cup.
 
 According to @fig-q2-plot2, we can observe that representation from Non-European teams have increased in the earlier rounds over time from the 1930s and 1940s to the 2010s and 2020s where the proportion of African and Asian teams in earlier rounds have increased over time. For instance, some African and Asian teams have made it to and past the Quarters in the 1950s and 1960s to the 2010s and 2020s World Cups. However, the representation of Non-European teams that we see in earlier rounds decrease in later rounds such as the Semis and Finals and are mostly dominated by European and South American teams. Although we see an increase in representation of Non-European and South American teams in earlier rounds over time from the first World Cups to the most recent ones, the proportion of non-European and South American teams gradually decreases as the rounds progress with teams being eliminated each round, resulting with mostly European and South American teams remaining in the final rounds of the World Cup. Thus, an increase in representation in early rounds does not lead to more representation in later rounds.
 
