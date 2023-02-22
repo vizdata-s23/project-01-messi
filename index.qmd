@@ -10,7 +10,7 @@ execute:
 
 ## Abstract
 
-(1 paragraph): Project abstract.
+For our project, we are exploring goal scoring trends and representation of teams from non-European countries in the Fifa World Cup. We analyzed how the introduction of penalties, the expansion of team size, goal line technology, and VAR in the World Cup have impacted the goals scored per game over time. Our results showcased that penalties and the expansion of team size did not have a major impact on goal scoring, but goal line technology and VAR both have increased the number of goals scored per game. Since the addition of technology like VAR and goal-like technology, the frequency of penalties and the proportion of goals that are penalties have increased. In addition, we analyzed how the proportion of WC teams by continent changed over each year of the World Cup. Our results showcased that although Europe has been the most represented continent in the World Cup, its representation has decreased over the years as more teams from Asia/Oceania and Africa have increased. We also explored how the representation of non-European and South American teams changed across the rounds of the World Cup. In our results, we observed that although there is an increase in representation from non-European and South American teams in the earlier rounds over time, this diversity of continents is not represented in later rounds where European and South American teams typically dominate.
 
 ```{r}
 #| label: load-pkgs
@@ -97,9 +97,7 @@ penaltieswgoalsnew <- penaltieswgoalsnew |>
 
 ## Introduction
 
-(1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.
-
-The datasets we used for this project revolve around the Fifa World Cup, a quadannual torunament where the top football countries battle it out for glory on the pitch. The first dataset, wcmatches contains every football match played in the world cup from its inception in 1938, to the 2018 world cup in Russia. Columns inside the dataset include the city the match was played in, the teams playing, the outcome, goals scored by each team, stage of the cup and more. The second dataset, worldcups contains summary information on each world cup. This information includes the winners (along with second through 4th place), where the cup was held, the total goals scored, number of games and other similar information. We also use an external dataset from kaggle called penalities which gives us the data on penalty kicks from each world cup. The dataset has a year column and then penalty related columns like, total penalties called, penalties missed, penalties saved, and more. All three datasets are very easy to merge based on the year variable.
+The datasets we used for this project revolve around the Fifa World Cup, a quadannual torunament where the top football countries battle it out for glory on the pitch. The first dataset, wcmatches contains every football match played in the world cup from its inception in 1938, to the 2018 world cup in Russia. Columns inside the dataset include the city the match was played in, the teams playing, the outcome, goals scored by each team, stage of the cup and more. The second dataset, worldcups contains summary information on each world cup. This information includes the winners (along with second through 4th place), where the cup was held, the total goals scored, number of games and other similar information. We also use an external dataset from kaggle called penalties which gives us the data on penalty kicks from each world cup. The dataset has a year column and then penalty related columns like, total penalties called, penalties missed, penalties saved, and more. All three datasets are very easy to merge based on the year variable.
 
 ## Question 1: The Effect of New Rules on Goals Scored
 
@@ -111,13 +109,9 @@ To explore our question, we will be using the `wcmatches` and `worldcups` datase
 
 ### Approach
 
-(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
-
 For the first plot, we will be making a scatterplot showing the goals scored per game during each World Cup. This will make the goal scoring trends over time visible and allow for our annotations to reveal possible causes in patterns. We will be coloring points based on whether that tournament had a new rule, and the shape of the point will indicate whether a notable event took place during that tournament. We will add text annotations over the plot indicating what the rule or event that happened during a tournament was.
 
 ### Analysis
-
-(2-3 code blocks, 2 figures, text/code comments as needed): In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with **ggplot2**. Do not use base R or lattice plotting functions.
 
 #### Plot 1
 
@@ -262,8 +256,6 @@ ggplot(q1, aes(
 
 ### Discussion
 
-(1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots. Speculate about why the data looks the way it does.
-
 The overall trend in the scatterplot is the decrease in goals scored per game across the World Cups. After a short 3 tournament long increase, the number of goals scored per game has steadily decreased from about 4 goals to just over 2. The noticeable outliers are 1942 and 1946, which were cancelled due to WWII, and 1954, which was dominated by the Uruguay team who set the record for the most goals scored by one country. The introduction of penalties did not appear to affect goal scoring. The expansion of the tournament from 16 to 24 to 32 teams also did not have a lasting impact other than the 2-tournament downward trend following 1982. It seems that the implementation of technology in arbitrating games has produced the largest effect in decades. Goal line technology, which notifies the referee when the entire ball crosses the goal line, and VAR (video assistant referee) which allows referees to rewatch plays and either uphold or reverse their initial calls on the field, have both increased the number of goals being scored per game. This is because goal line technology allows referees to stop play the moment a true goal is scored, despite limited vision, and VAR has caused more penalty kicks to be called, which frequently result in goals. 
 
 ## Question 2: Representation of Non-European and South American Teams in the World Cup
@@ -275,8 +267,6 @@ Ever since the beginning of the World Cup, the game has been dominated by Europe
 To explore our question, we will use the `wcmatches` and `worldcups` datasets from TidyTuesday and merge them by the year of the world cup in order to bring over the information for each world cup to each world cup match. To measure representation from Non-European and South American Teams, we created a variable continent based off of the countries of the teams with the levels Africa, Asia, Europe, North America, South America, and Other. We will use continent to explore how the representation from the different continents changed over the years of the World Cup by observing how the proportions of teams from different continents change over time. To observe if an increase in representation in earlier rounds will also reflect in the later rounds with an increase in representation from non-European and South American teams, we will look at representation across the different rounds in the World Cup since the World Cup is an elimination game.
 
 ### Approach
-
-(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
 
 For our first plot, we made a line graph which records the proportion of WC teams by continent over the years. So the x-axis is the year variable and the y-axis is a newly created variable which the proportion teams from a specific continent represented in that world cup (so for each year, all the proportions will add up to 100%). The graph will be colored by continent to differentiate each line. We felt that a line chart segmented by color was best as line graphs are very useful for time series data. Furthermore, having all the lines on the same graph will be great for comparing the increases/decreases in representation of different continents over time.
 
