@@ -140,7 +140,9 @@ penaltieswgoalsnew <- penaltieswgoalsnew |>
     ::: {.column width="50%"}
     Plot 2
 
-    -   line graph showing penalties per game and proportion of goals that are penalties
+    -   line graph showing how the number of penalties per game and the proportion of goals that are penalties has changed over time
+    -   Used world cup aggregated tournament data (i.e. total number of penalties scored in a given year's tournament)
+    -   Includes 2022 world cup data to better see the effect of VAR on penalties
     :::
     :::
 
@@ -323,9 +325,14 @@ ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
   ),
   color = "#1077C3",
   linetype = "dashed") +
+  scale_y_continuous(
+    name = "Penalties per Game",
+    sec.axis = sec_axis(~ . * 2, name = "Prop. goals that are penalties", 
+                        labels = function(x) sprintf("%.2f", x))
+  ) +
   theme_minimal() +
-  theme(legend.position="bottom")
-
+  theme(legend.position="bottom",
+        axis.text.y.right = element_text(color = "red"))
 ```
 
 \
@@ -609,6 +616,18 @@ q2_2_no_third |>
   scale_y_continuous(labels = scales::percent) +
   scale_fill_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be"))
 ```
+
+## Conclusion
+
+-   Goals have become less frequent over time
+
+-   Penalties have become a more important part of the game
+
+-   Europe's Dominant Representation Decreases Over Time
+
+-   The World Cup has improved over time in terms of diversity
+
+-   European & South American Teams Dominate Later Rounds
 
 ## Thank you!
 
