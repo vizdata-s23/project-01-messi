@@ -285,6 +285,44 @@ ggplot(q1, aes(
 -   The introduction of and increasing the number of teams did not affect goal scoring overall
 -   Technology implementations in 2014 and 2018 increased goals scored per game
 
+## How penalty kick frequency has changed across World Cups
+
+```{r}
+ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
+  geom_line(aes(color = "Penalties per game")) +
+  geom_point(aes(size = goalspergame)) +
+  geom_line(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties")) +
+  geom_smooth(aes(color = "Penalties per game"), method = "lm", se = FALSE) +
+  geom_smooth(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties"), method = "lm", se = FALSE) +
+  labs(x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
+  scale_color_manual(name = "Legend", 
+                     values = c("Penalties per game" = "black", "Prop. of goals that are penalties" = "red")) +
+  guides(size = guide_legend(title = "Goals per game")) +
+  scale_size(range = c(2, 8)) +
+  annotate(
+    geom = "text",
+    label = "2018: VAR introduced",
+    x = 1992,
+    y = 0.48,
+    size = 3.5,
+    color = "#1077C3"
+  ) +
+  geom_segment(aes(
+    x = 2015,
+    y = 0.5,
+    xend = 2015,
+    yend = 0
+  ),
+  color = "#1077C3",
+  linetype = "dashed") +
+  theme_minimal()
+
+```
+
+Note: I\'m modeling this relationship as a linear relationship. However, it doesn\'t have to be this way, and I am making an assumption by doing so. I just added the the line of best fit there so that you guys could more clearly see the positive relationship, and denote that the number if penalties per game for a tournament has gone up over time. Conversely, as you can see from our previous plot and from the decreasing point sizes, the goals per game has gone down over time. Thus, it is not surprising to see that the proportion of goals scored that are in the form of a penalty kick, represented in the red line, has also increased over time.
+
+\
+
 ## Question 2: Representation of Non-European and South American Teams in the World Cup
 
 ## Approach
