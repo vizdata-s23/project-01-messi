@@ -99,6 +99,8 @@ penaltieswgoalsnew <- penaltieswgoalsnew |>
 
 (1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.
 
+The datasets we used for this project revolve around the Fifa World Cup, a quadannual torunament where the top football countries battle it out for glory on the pitch. The first dataset, wcmatches contains every football match played in the world cup from its inception in 1938, to the 2018 world cup in Russia. Columns inside the dataset include the city the match was played in, the teams playing, the outcome, goals scored by each team, stage of the cup and more. The second dataset, worldcups contains summary information on each world cup. This information includes the winners (along with second through 4th place), where the cup was held, the total goals scored, number of games and other similar information. We also use an external dataset from kaggle called penalities which gives us the data on penalty kicks from each world cup. The dataset has a year column and then penalty related columns like, total penalties called, penalties missed, penalties saved, and more. All three datasets are very easy to merge based on the year variable.
+
 ## Question 1: The Effect of New Rules on Goals Scored
 
 ### Introduction
@@ -276,13 +278,23 @@ To explore our question, we will use the `wcmatches` and `worldcups` datasets fr
 
 (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
 
+For our first plot, we made a line graph which records the proportion of WC teams by continent over the years. So the x-axis is the year variable and the y-axis is a newly created variable which the proportion teams from a specific continent represented in that world cup (so for each year, all the proportions will add up to 100%). The graph will be colored by continent to differentiate each line. We felt that a line chart segmented by color was best as line graphs are very useful for time series data. Furthermore, having all the lines on the same graph will be great for comparing the increases/decreases in representation of different continents over time.
+
 For our second plot, we will make a segmented relative frequency barplot to illustrate how the representation from Non-European and South American teams change across the different World Cup rounds and over time. Since we want to explore the relative proportions of teams from each continent across the World Cup rounds, we thought it was best to use a segmented relative frequency barplot and fill by continent to allow for straightforward and direct comparison across groups. In addition, we chose to look at relative frequencies rather than counts since the number of teams varies for each round of the World Cup. We will order the rounds on the y axis from the earlier rounds to later rounds, starting with Groups and ending with the Finals. To visualize the representation in each round, we filled by continent. We will also facet by every two decades to explore how the representation across rounds of the World Cup changes over time for all World Cups in history. 
 
 ### Analysis
 
 ```{r}
-#| label: q2_plot2_dataprep
+#| label: q2_plot1_dataprep
+#| warning: false
+## Creating middle dataset to extract continent data
+q2 <- wcmatches %>%
+  pivot_longer(c(home_team, away_team)) %>%
+  rename(home_away = name,
+         team = value)
 
+
+### Creating continent buckets
 Europe  <- c('France', "Belgium", 'Yugoslavia', 'Romania', 'Sweden', 'Austria', 'Germany', 'Spain', 'Czechoslovakia', 'Hungary', 'Italy', 'Netherlands', 'Switzerland', 'Poland', 'Norway', 'England', 'Scotland', 'West Germany', 'Turkey', 'Northern Ireland', 'Wales', 'Bulgaria', 'Portugal', 'East Germany', 'Denmark', 'Republic of Ireland', 'Greece', 'Croatia', 'FR Yugoslavia', 'Serbia', 'Slovenia', 'Czech Republic', 'Ukraine', 'Slovakia', 'Iceland', 'Bosnia and Herzegovina') 
 
 Asia <- c('South Korea', 'Soviet Union', 'North Korea', 'Israel', 'Iran', 'Cameroon', 'Kuwait', 'Iraq', 'United Arab Emirates', 'Russia', 'Saudi Arabia', 'Japan', 'China PR', 'Australia', 'New Zealand')
@@ -292,6 +304,121 @@ Africa <- c('Egypt', 'Morocco', 'Zaire', 'Tunisia', 'Algeria', 'Nigeria', 'South
 North_America <- c('Mexico', 'United States', 'Cuba', 'Dutch West Indies', 'Haiti', 'El Salvador', "Honduras", 'Canada', 'Costa Rica', 'Jamaica', 'Trinidad and Tobago', 'Panama')
 
 South_America <- c('Brazil', 'Peru', 'Argentina', 'Chile', 'Bolivia', 'Paraguay', 'Uruguay', 'Colombia','Ecuador')
+
+
+### Creating dataset with continent variable 
+q2 <- q2 %>%
+  mutate(continent =
+           case_when(team %in% Europe ~ 'Europe',
+                     team %in% Asia ~ 'Asia/Oceania',
+                     team %in% South_America ~ 'South America',
+                     team %in% North_America ~ 'North America',
+                     team %in% Africa ~ 'Africa',
+                     TRUE ~ 'Other'))
+
+### Getting proporitions of countries per world cup
+continent_per_year <- q2 %>%
+  group_by(year, continent) %>%
+  summarize(teams = unique(team)) %>%
+  group_by(year, continent) %>%
+  summarize(count_per_continent = n())
+
+freq <- continent_per_year %>%
+  group_by(year) %>%
+  mutate(total = sum(count_per_continent),
+         pct = count_per_continent/total) 
+
+```
+
+```{r}
+#| lavel: fig-q2-plot1
+#| fig-cap: representation of continents in the world cup across time
+#| warning: false
+ggplot(freq, aes(x = year, y = pct, color = continent)) +
+  geom_point(size = .2) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = 'Year',
+    y = 'Percentage of teams in WC',
+    title = 'Percentage of world cup teams from each continent',
+    subtitle = 'by year',
+    color = 'Continent'
+  ) +
+  scale_color_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be"))  +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  geom_rect(
+    xmin = 1982.25,
+    xmax = 1995,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1982,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1982.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 24",
+    size = 2,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1982,
+    y = 1,
+    label = "1982",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  geom_rect(
+    xmin = 1998.25,
+    xmax = 2011,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1998,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1998.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 32",
+    size = 2,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1998,
+    y = 1,
+    label = "1998",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  theme(plot.margin = margin(10, 10, 30, 10))
+
+```
+
+```{r}
+#| label: q2_plot2_dataprep
 
 q2_2 <- world_cup_total |>
   pivot_longer(
@@ -393,8 +520,14 @@ q2_2_no_third |>
 
 ### Discussion
 
-According to @fig-q2-plot2, we can observe that representation from Non-European and South American teams have increased in the earlier rounds over time from the 1930s and 1940s to the 2010s and 2020s where the proportion of African and Asian teams in earlier rounds have increased over time. For instance, some African and Asian teams have made it to and past the Quarters in the 1950s and 1960s to the 2010s and 2020s World Cups. However, the representation of Non-European and South American teams that we see in earlier rounds decrease in later rounds such as the Semis and Finals and are mostly dominated by European and South American teams. Although we see an increase in representation of Non-European and South American teams in earlier rounds over time from the first World Cups to the most recent ones, the proportion of non-European and South American teams gradually decreases as the rounds progress with teams being eliminated eliminated each round, resulting with mostly European and South American teams remaining in the final rounds of the World Cup. Thus, an increase in representation in early rounds does not lead to more representation in later rounds.
+According to @fig-q2-plot1, we can see that the dominant continent in the world cup appears to be Europe, at least from a participation perspective. Outside of the first world cup (which took place in Uruguay) that has more South American teams than European teams, Europe is the most represented continent, even making up a majority up until the 90s. However, while Europe is still the most represented continent today, that share has been greatly diminished. We can see that the proportion World cup teams that come from Europe slowly decreases over time, especially after the addition of more teams in 1982 and 1998. For example, since the addition of more team sin 1982, the proportion of African and Asian/Oceanic teams in the cup has nearly doubled from around 10% to 20%.
+
+So what might be the reason for Europe early dominance and recent decline? Europe has always been a powerhouse in football. Even at the last world cup, Europe had 7 of the top 10 teams coming into the world cup (according to 538, a sports analytics site https://projects.fivethirtyeight.com/2022-world-cup-predictions/), with the other 3 belonging to South America. However, since the addition of new teams in 1982 and 1998 and the addition of new qualifying rules, there is a capped amount of European teams that can be in the cup, replaced by an increase in space for other continents. For example, in the last world cup, there were 5 spots reserved for African teams, and for the next world cup, when the number of teams increases to 48, 9 of those spots will be reserved for Africans. One might ask whether these rule changes are good for the sport if European teams seem to be the most dominant? Why not just have the 32 best teams in the world? Because that would defying the point of the world cup. The world cup is one of the single most important and unifying events in the world. The entire globe comes together to watch a the world cup, and reserving it to Europe and South America would no longer make it a 'world' cup. Furthermore, as we saw this year, despite it being linked to the bottom quarter of teams in the cup according to sports analytics, Morocco made a run to the semi-finals, beating teams like Portugal, Spain and Belgium. So the movement we see in the graph with more representation is, in our eyes, a great thing for the sport highlights a bright future for the cup! Now we can look at if this increase in representation in recent years results in more representation in late rounds of the cup
+
+According to @fig-q2-plot2, we can observe that representation from Non-European teams have increased in the earlier rounds over time from the 1930s and 1940s to the 2010s and 2020s where the proportion of African and Asian teams in earlier rounds have increased over time. For instance, some African and Asian teams have made it to and past the Quarters in the 1950s and 1960s to the 2010s and 2020s World Cups. However, the representation of Non-European teams that we see in earlier rounds decrease in later rounds such as the Semis and Finals and are mostly dominated by European and South American teams. Although we see an increase in representation of Non-European and South American teams in earlier rounds over time from the first World Cups to the most recent ones, the proportion of non-European and South American teams gradually decreases as the rounds progress with teams being eliminated each round, resulting with mostly European and South American teams remaining in the final rounds of the World Cup. Thus, an increase in representation in early rounds does not lead to more representation in later rounds.
 
 It is also interesting to note that there is no data for the Round of 16 in the World Cups of the 1950s and 1960s. This is due to the fact that during that time, teams immediately skipped straight to the quarterfinals since there were only 16 teams. Despite this anomaly, the representation of non-European and South American teams decreased from Group to Finals round during the 1950s and 1960s.
+
+The lack of diversity in late rounds makes sense as European and South American teams are typically considered the strongest when entering the world cup. Despite the solid diversity in group stages of late decades, the finals and semifinals look very similar to every other decade. We expect that, in the future, this will change as countries in Africa and Asia, for example, continue to improve their leagues and facilities. Eventually, we believe that the diversity of continents in the final round will look nearly identical to that of early rounds, although it may take a couple decades!
 
 \
