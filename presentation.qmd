@@ -109,11 +109,17 @@ penaltieswgoalsnew <- penaltieswgoalsnew |>
   )
 ```
 
-## Introduction
+## Introduction: FIFA World Cup
 
--   Introduction
+-   Three datasets:
 
--   Introduction
+    -   `wcmatches` contains every match in FIFA World Cup history
+
+    -   `worldcups` contains summary statistics on every world cup played
+
+    -   `penalties` contains penalty data on each world cup
+
+-   Our goal is to explore a couple of areas on how the world cup has changed over its history
 
 ## Q1: The Effect of New Rules on Goals Scored
 
@@ -282,20 +288,23 @@ ggplot(q1, aes(
 
 ## Observations
 
+-   Goal scoring has remained relatively stable since 1962
 -   The introduction of and increasing the number of teams did not affect goal scoring overall
 -   Technology implementations in 2014 and 2018 increased goals scored per game
 
 ## How penalty kick frequency has changed across World Cups
 
 ```{r}
+#| label: q1-plot2
+#| echo: false
 ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
   geom_line(aes(color = "Penalties per game")) +
-  geom_point(aes(size = goalspergame)) +
+  #geom_point(aes(size = goalspergame)) +
   geom_line(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties")) +
   geom_smooth(aes(color = "Penalties per game"), method = "lm", se = FALSE) +
   geom_smooth(aes(y = propgoalsthatarepens, color = "Prop. of goals that are penalties"), method = "lm", se = FALSE) +
   labs(x = "Year", y = "Penalties per Game", size = "Goals per Game", color = "") +
-  scale_color_manual(name = "Legend", 
+  scale_color_manual( 
                      values = c("Penalties per game" = "black", "Prop. of goals that are penalties" = "red")) +
   guides(size = guide_legend(title = "Goals per game")) +
   scale_size(range = c(2, 8)) +
@@ -315,15 +324,24 @@ ggplot(data = penaltieswgoalsnew, aes(x = year, y = penaltiespergame)) +
   ),
   color = "#1077C3",
   linetype = "dashed") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position="bottom")
 
 ```
 
-Note: I\'m modeling this relationship as a linear relationship. However, it doesn\'t have to be this way, and I am making an assumption by doing so. I just added the the line of best fit there so that you guys could more clearly see the positive relationship, and denote that the number if penalties per game for a tournament has gone up over time. Conversely, as you can see from our previous plot and from the decreasing point sizes, the goals per game has gone down over time. Thus, it is not surprising to see that the proportion of goals scored that are in the form of a penalty kick, represented in the red line, has also increased over time.
-
 \
 
-## Question 2: Representation of Non-European and South American Teams in the World Cup
+## Question 2: Representation of continents in the World Cup {.smaller}
+
+-   Despite the 'world' name, the world cup appears to be consistently dominated by European and South American teams
+
+-   How has the representation of the world cup changed over time?
+
+-   Have rule changes and qualification changes allowed for more countries outside Europe and South Ameica to be included?
+
+-   Has this increase in diversity been consistent across rounds?
+
+    -   Other stories like Morocco this year!
 
 ## Approach
 
@@ -335,7 +353,7 @@ Note: I\'m modeling this relationship as a linear relationship. However, it does
 
     -   time series plot
 
-    -   proportion of European and South American teams vs. non-European and South American teams
+    -   proportion of all continents represented in each world cup over time
     :::
 
     ::: {.column width="50%"}
@@ -346,6 +364,140 @@ Note: I\'m modeling this relationship as a linear relationship. However, it does
     -   representation from non-European and South American teams change across rounds and over every two decades (facet)
     :::
     :::
+
+## Representation Across World Cups
+
+```{r}
+#| label: q2_plot1_dataprep
+#| warning: false
+#| echo: false
+options(warn=-1)
+## Creating middle dataset to extract continent data
+q2 <- wcmatches %>%
+  pivot_longer(c(home_team, away_team)) %>%
+  rename(home_away = name,
+         team = value)
+
+
+### Creating continent buckets
+Europe  <- c('France', "Belgium", 'Yugoslavia', 'Romania', 'Sweden', 'Austria', 'Germany', 'Spain', 'Czechoslovakia', 'Hungary', 'Italy', 'Netherlands', 'Switzerland', 'Poland', 'Norway', 'England', 'Scotland', 'West Germany', 'Turkey', 'Northern Ireland', 'Wales', 'Bulgaria', 'Portugal', 'East Germany', 'Denmark', 'Republic of Ireland', 'Greece', 'Croatia', 'FR Yugoslavia', 'Serbia', 'Slovenia', 'Czech Republic', 'Ukraine', 'Slovakia', 'Iceland', 'Bosnia and Herzegovina') 
+
+Asia <- c('South Korea', 'Soviet Union', 'North Korea', 'Israel', 'Iran', 'Cameroon', 'Kuwait', 'Iraq', 'United Arab Emirates', 'Russia', 'Saudi Arabia', 'Japan', 'China PR', 'Australia', 'New Zealand')
+
+Africa <- c('Egypt', 'Morocco', 'Zaire', 'Tunisia', 'Algeria', 'Nigeria', 'South Africa', 'Senegal', 'Ivory Coast', 'Angola', 'Ghana', 'Togo' )
+
+North_America <- c('Mexico', 'United States', 'Cuba', 'Dutch West Indies', 'Haiti', 'El Salvador', "Honduras", 'Canada', 'Costa Rica', 'Jamaica', 'Trinidad and Tobago', 'Panama')
+
+South_America <- c('Brazil', 'Peru', 'Argentina', 'Chile', 'Bolivia', 'Paraguay', 'Uruguay', 'Colombia','Ecuador')
+
+
+### Creating dataset with continent variable 
+q2 <- q2 %>%
+  mutate(continent =
+           case_when(team %in% Europe ~ 'Europe',
+                     team %in% Asia ~ 'Asia/Oceania',
+                     team %in% South_America ~ 'South America',
+                     team %in% North_America ~ 'North America',
+                     team %in% Africa ~ 'Africa',
+                     TRUE ~ 'Other'))
+
+### Getting proporitions of countries per world cup
+continent_per_year <- q2 %>%
+  group_by(year, continent) %>%
+  summarize(teams = unique(team)) %>%
+  group_by(year, continent) %>%
+  summarize(count_per_continent = n())
+
+freq <- continent_per_year %>%
+  group_by(year) %>%
+  mutate(total = sum(count_per_continent),
+         pct = count_per_continent/total) 
+```
+
+```{r}
+#| lavel: fig-q2-plot1
+#| warning: false
+ggplot(freq, aes(x = year, y = pct, color = continent)) +
+  geom_point(size = .2) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = 'Year',
+    y = 'Percentage of teams in WC',
+    title = "Europe's Dominant Representation Decreases Over Time",
+    color = 'Continent'
+  ) +
+  scale_color_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be"))  +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  geom_rect(
+    xmin = 1982.25,
+    xmax = 1995,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1982,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1982.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 24",
+    size = 1.5,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1982,
+    y = 1,
+    label = "1982",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  geom_rect(
+    xmin = 1998.25,
+    xmax = 2011,
+    ymin = 0.74,
+    ymax = 0.81,
+    fill = "white",
+    color = "black",
+    size = 0.2
+  ) +
+  geom_vline(xintercept = 1998,
+             linetype = "dashed",
+             color = "red") +
+  annotate(
+    "text",
+    x = 1998.35,
+    y = 0.8,
+    label = "Number of teams\nincreased to 32",
+    size = 1.5,
+    color = "black",
+    hjust = 0,
+    vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 1998,
+    y = 1,
+    label = "1998",
+    size = 4,
+    color = "red",
+    hjust = -0.1,
+    vjust = 1,
+    fontface = "bold"
+  ) +
+  theme(plot.margin = margin(10, 10, 30, 10))
+
+```
 
 ## Representation Across Rounds
 
