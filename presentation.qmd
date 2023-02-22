@@ -285,37 +285,144 @@ ggplot(q1, aes(
 -   The introduction of and increasing the number of teams did not affect goal scoring overall
 -   Technology implementations in 2014 and 2018 increased goals scored per game
 
-## Plot and text
+## Question 2: Representation of Non-European and South American Teams in the World Cup
 
-::: columns
-::: {.column width="50%"}
--   Some text
--   goes here
-:::
+## Approach
 
-::: {.column width="50%"}
+-   created `continent` variable with levels Asia, Africa, Europe, North America, South America, Other
+
+    ::: columns
+    ::: {.column width="50%"}
+    **Plot 1:**
+
+    -   time series plot
+
+    -   proportion of European and South American teams vs. non-European and South American teams
+    :::
+
+    ::: {.column width="50%"}
+    **Plot 2:**
+
+    -   segmented relative frequency barplot
+
+    -   representation from non-European and South American teams change across rounds and over every two decades (facet)
+    :::
+    :::
+
+## Representation Across Rounds
+
 ```{r}
-#| warning: false
-#| out-width: "100%"
-#| fig-width: 4
+#| label: q2_plot2_dataprep
 #| echo: false
 
-# See how I changed out-width and fig-width from defaults
-# to make the figure bigger
+Europe  <- c('France', "Belgium", 'Yugoslavia', 'Romania', 'Sweden', 'Austria', 'Germany', 'Spain', 'Czechoslovakia', 'Hungary', 'Italy', 'Netherlands', 'Switzerland', 'Poland', 'Norway', 'England', 'Scotland', 'West Germany', 'Turkey', 'Northern Ireland', 'Wales', 'Bulgaria', 'Portugal', 'East Germany', 'Denmark', 'Republic of Ireland', 'Greece', 'Croatia', 'FR Yugoslavia', 'Serbia', 'Slovenia', 'Czech Republic', 'Ukraine', 'Slovakia', 'Iceland', 'Bosnia and Herzegovina') 
+
+Asia <- c('South Korea', 'Soviet Union', 'North Korea', 'Israel', 'Iran', 'Cameroon', 'Kuwait', 'Iraq', 'United Arab Emirates', 'Russia', 'Saudi Arabia', 'Japan', 'China PR', 'Australia', 'New Zealand')
+
+Africa <- c('Egypt', 'Morocco', 'Zaire', 'Tunisia', 'Algeria', 'Nigeria', 'South Africa', 'Senegal', 'Ivory Coast', 'Angola', 'Ghana', 'Togo' )
+
+North_America <- c('Mexico', 'United States', 'Cuba', 'Dutch West Indies', 'Haiti', 'El Salvador', "Honduras", 'Canada', 'Costa Rica', 'Jamaica', 'Trinidad and Tobago', 'Panama')
+
+South_America <- c('Brazil', 'Peru', 'Argentina', 'Chile', 'Bolivia', 'Paraguay', 'Uruguay', 'Colombia','Ecuador')
+
+q2_2 <- world_cup_total |>
+  pivot_longer(
+    cols = c(home_team, away_team),
+    names_to = "home_away",
+    values_to = "team"
+  ) |>
+  mutate(
+    continent = case_when(
+      team %in% Africa ~ "Africa",
+      team %in% Asia ~ "Asia",
+      team %in% North_America ~ "North America",
+      team %in% South_America ~ "South America",
+      team %in% Europe ~ "Europe",
+      TRUE ~ "Other"
+    ),
+    rounds = case_when(
+      str_detect(stage, "Group") ~ "Group",
+      stage %in% c("Round of 16") ~ "Round 16",
+      stage == "Quarterfinals" ~ "Quarters",
+      stage == "Semifinals" ~ "Semis",
+      stage == "Final Round" &
+        winning_team == "Sweden" & losing_team == "Spain" ~ "Third",
+      stage == "Third place" ~ "Third",
+      stage == "Final Round" &
+        winning_team == "Uruguay" &
+        losing_team == "Brazil" ~ "Final",
+      stage == "Final" ~ "Final",
+      TRUE ~ "Semis"
+    ),
+    # changed to be 20 years
+    decade = case_when(
+      year %in% 1930:1949 ~ "1930s/40s",
+      #year %in% 1940:1949 ~ "1940s",
+      year %in% 1950:1969 ~ "1950s/60s",
+      #year %in% 1960:1969 ~ "1960s",
+      year %in% 1970:1989 ~ "1970s/80s",
+      #year %in% 1980:1989 ~ "1980s",
+      year %in% 1990:2009 ~ "1990/00s",
+      #year %in% 2000:2009 ~ "2000s",
+      year %in% 2010:2029 ~ "2010s/20s"
+      #year %in% 2020:2029 ~ "2020s",
+    )
+  )
+
 ```
-:::
-:::
-
-# A new section...
-
-## Tables
-
-If you want to generate a table, make sure it is in the HTML format (instead of Markdown or other formats), e.g.,
 
 ```{r}
-#| label: penguins-table
+#| label: q2-plot2-plot
+#| warning: false
+#| echo: false
 
-#gt(head(penguins))
+# Exclude "Third" from the levels of the factor variable "rounds"
+q2_2_no_third <- q2_2 %>% filter(rounds != "Third")
+
+# Reorder the factor levels of the "continent" variable
+q2_2_no_third$continent <- fct_relevel(
+  q2_2_no_third$continent,
+  "Other",
+  "Africa",
+  "North America",
+  "Asia",
+  "South America",
+  "Europe"
+)
+
+# Create the stacked bar plot
+q2_2_no_third |>
+  mutate(rounds = fct_relevel(rounds, "Final", "Semis", "Quarters", "Round 16", "Group")) |>
+  ggplot(aes(x = rounds, fill = continent)) +
+  geom_bar(position = "fill") +
+  facet_grid(decade ~ .) +
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "European & South American Teams Dominate Later Rounds",
+       x = "Rounds of the World Cup",
+       y = "Proportion",
+       fill = "Continent") +
+  theme(
+    axis.text.x = element_text(vjust = 0.7, face = "bold"),
+    strip.text.y = element_text(angle = 360, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    plot.title = element_text(hjust = 0),
+    axis.title.y = element_text(margin = margin(
+      t = 0,
+      r = 20,
+      b = 0,
+      l = 0
+    )),
+    axis.title.x = element_text(margin = margin(
+      t = 15,
+      r = 0,
+      b = 0,
+      l = 0
+    ))
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be"))
 ```
 
 ## Images
