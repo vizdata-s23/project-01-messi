@@ -44,10 +44,45 @@ left_join(world_cup_total, penalties, by = 'year')
 
 ```{r, echo = FALSE}
 #| label: new-variables
+
+penalties2022 <- data.frame(2022, "Qatar", 64, 17, 23, 5, 1)   
+names(penalties2022) <- c("Year", "Host", "MatchesPlayed", "PenaltiesScored", "PenaltiesAwarded", "PenaltiesSaved", "PenaltiesMissed")  
+
+penaltiesnew <- rbind(penalties, penalties2022)  
+
+
 world_cup_total <- world_cup_total |>
   mutate(goalspergame = goals_scored/games,
          attendancepergame = attendance/games,
          gamesperteam = games/teams)
+```
+
+```{r}
+penaltiesnew <- penaltiesnew |>
+  mutate(penaltiespergame = PenaltiesAwarded/MatchesPlayed,
+         penaltymakepercentage = PenaltiesScored/PenaltiesAwarded)
+
+names(penaltiesnew)[names(penaltiesnew) == "Year"] <- "year"
+names(worldcups)
+
+```
+
+```{r}
+penaltieswgoalsnew <- merge(penaltiesnew, worldcups, by = "year", all.x = TRUE)
+penaltieswgoalsnew <- penaltieswgoalsnew |>
+  mutate(propgoalsthatarepens = PenaltiesScored/goals_scored)
+
+```
+
+```{r}
+# calculate correlation coefficient
+corr <- cor(penaltieswgoalsnew$PenaltiesScored, penaltieswgoalsnew$goals_scored)
+
+# calculate R-squared value
+rsq <- corr^2
+
+# print R-squared value
+rsq
 ```
 
 ## Question 1
@@ -408,5 +443,3 @@ q2_2_no_third |>
   scale_fill_manual(values = c("#e29578", "#56042C", "#F2CC8F", "#006d77", "#83c5be")) 
 
 ```
-
-
